@@ -1,11 +1,11 @@
-from scraper import EmbalsesScraper
+from scraper import EmbalsesScraperSelenium
 import pandas as pd
 import time
 
 df = pd.DataFrame()
 output_file="embalses.csv"
 
-scraper = EmbalsesScraper(df)
+scraper = EmbalsesScraperSelenium(df)
 scraper.scrape()
 scraper.data2csv(output_file)
 
