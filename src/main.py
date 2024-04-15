@@ -3,10 +3,9 @@ import pandas as pd
 import time
 
 df = pd.DataFrame()
-url = "https://www.embalses.net"
 output_file="embalses.csv"
 
-scraper = EmbalsesScraper(url, df)
+scraper = EmbalsesScraper(df)
 scraper.scrape()
 scraper.data2csv(output_file)
 
