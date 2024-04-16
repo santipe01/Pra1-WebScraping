@@ -9,7 +9,7 @@ scraper = EmbalsesScraperSelenium(df)
 print("Quieres hacer scrape o actualizar? (scrape/actualizar)")
 respuesta = input()
 if respuesta == "actualizar":
-  scraper.update_scrape(df)
+  scraper.update_scrape()
   print("Quieres exportar el dataset actualizado? (Si/No)")
   respuesta2 = input()
     if respuesta2 in ["Si", "si", "SI"]:
