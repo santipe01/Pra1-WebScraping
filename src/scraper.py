@@ -1,7 +1,4 @@
-from bs4 import BeautifulSoup
-import requests
 import pandas as pd
-from scrapy.http import HtmlResponse
 import re
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
