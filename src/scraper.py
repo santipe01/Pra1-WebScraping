@@ -77,8 +77,6 @@ class EmbalsesScraperSelenium():
 
             javascript_mapa = self.driver.find_elements(By.CSS_SELECTOR, 'script[type="text/javascript"]')
             pattern = r'center: ol\.proj\.fromLonLat\(\[(-?\d+\.\d+), (-?\d+\.\d+)\]\)'
-            longitud = 0
-            latitud = 0
             for script in javascript_mapa:
                 matches = re.search(pattern, script.get_attribute('innerHTML'))
                 if matches:
