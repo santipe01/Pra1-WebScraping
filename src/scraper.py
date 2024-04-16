@@ -202,13 +202,10 @@ class EmbalsesScraperSelenium():
         if self.data.empty:
             urls_cuencas = self.__get_url_cuencas()
             urls_embalses = self.__get_url_embalses(urls_cuencas)
-            cont = 0
             for embalse in urls_embalses:
-                if cont < 3:
-                    embalse_data = self.__get_info_embalse(embalse)
-                    df_temporal = pd.DataFrame([embalse_data])
-                    self.data = pd.concat([self.data, df_temporal], ignore_index=True)
-                    cont += 1
+                embalse_data = self.__get_info_embalse(embalse)
+                df_temporal = pd.DataFrame([embalse_data])
+                self.data = pd.concat([self.data, df_temporal], ignore_index=True)
         else:
             self.update_scrape()
 
@@ -216,13 +213,10 @@ class EmbalsesScraperSelenium():
         urls_cuencas = self.__get_url_cuencas()
         urls_embalses = self.__get_url_embalses(urls_cuencas)
         df_updated=pd.DataFrame()
-        cont = 0
         for embalse in urls_embalses:
-            if cont < 3:
-                embalse_data = self.__update_info_embalse(embalse)
-                df_temporal = pd.DataFrame([embalse_data])
-                df_updated  = pd.concat([df_updated, df_temporal], ignore_index=True)
-                cont += 1
+            embalse_data = self.__update_info_embalse(embalse)
+            df_temporal = pd.DataFrame([embalse_data])
+            df_updated  = pd.concat([df_updated, df_temporal], ignore_index=True)
         self.data.update(df_updated)
 
     def data2csv(self, outputfile):
