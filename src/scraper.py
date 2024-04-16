@@ -59,13 +59,13 @@ class EmbalsesScraperSelenium():
         self.driver.get(url_embalse)
         url_mapa=WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//a[text()="Ver Mapa"]')))
         url_mapa_href = url_mapa.get_attribute("href")
-        print(url_mapa_href)
         return url_mapa_href
 
     def __get_nombre_embalse(self, url):
-        match = re.search(r'\d+-(.*?)(?=.html)', url)
-        if match:
-            nombre_embalse = match.group(1)
+        self.driver.get(url)
+        embalse = self.driver.find_element(By.CLASS_NAME, 'SeccionCentral_TituloTexto').text
+        parts = embalse.split(":")
+        nombre_embalse = parts[1].strip()
         return nombre_embalse
 
     def __get_lonlat(self, url_embalse):
@@ -99,7 +99,6 @@ class EmbalsesScraperSelenium():
         self.driver.get(url_embalse)
         #self.__random_sleep()
         nombre_embalse = self.__get_nombre_embalse(url_embalse)
-        print(nombre_embalse)
         # Inicializamos un diccionario para almacenar los datos
         data = {"Embalse": nombre_embalse}
 
@@ -176,24 +175,24 @@ class EmbalsesScraperSelenium():
         # Buscamos todas las filas de datos del embalse
         filas_datos_embalse = self.driver.find_elements(By.CLASS_NAME, 'FilaSeccion')
 
-        # Iteramos sobre las filas de datos del embalse
-        for fila_datos in filas_datos_embalse:
-            # Verificamos si la fila pertenece a la primera tabla
-            if not fila_datos.find_elements(By.CLASS_NAME, 'CampoInf'):
-                # Primera tabla: 'Embalse: ___ '
-                try:
-                    campo = fila_datos.find_element(By.CLASS_NAME, 'Campo').text.strip()
-                    resultado = fila_datos.find_element(By.CLASS_NAME, 'Resultado').text.strip()
-                    unidad = fila_datos.find_element(By.CLASS_NAME, 'Unidad').text.strip()
-                except:
-                    campo = fila_datos.find_element(By.CLASS_NAME, 'Campo').text.strip()
-                    resultado = fila_datos.find_element(By.CLASS_NAME, 'Resultado').text.strip()
-                    unidad = fila_datos.find_element(By.CLASS_NAME, 'Unidad').text.strip()
+        elementos_sin_campo_inf = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'FilaSeccion') and not(./div[contains(@class, 'CampoInf')])]")
+        for elemento in elementos_sin_campo_inf:
+            try:
+                campo = elemento.find_element(By.CLASS_NAME, 'Campo').text.strip()
+                resultado = elemento.find_element(By.CLASS_NAME, 'Resultado').text.strip()
+                unidad = elemento.find_element(By.CLASS_NAME, 'Unidad').text.strip()
+            except:
+                campo = elemento.find_element(By.CLASS_NAME, 'Campo').text.strip()
+                resultado = elemento.find_element(By.CLASS_NAME, 'Resultado').text.strip()
+                unidad = elemento.find_element(By.CLASS_NAME, 'Unidad').text.strip()
+            campo_unidad = campo + unidad
+            # Añadimos los datos al diccionario
+            data[campo_unidad] = resultado
 
-                campo_unidad = campo + unidad
+        campo_unidad = campo + unidad
 
-                # Añadimos los datos al diccionario
-                data[campo_unidad] = resultado
+        # Añadimos los datos al diccionario
+        data[campo_unidad] = resultado
         return data
 
     def scrape(self):
@@ -203,10 +202,13 @@ class EmbalsesScraperSelenium():
         if self.data.empty:
             urls_cuencas = self.__get_url_cuencas()
             urls_embalses = self.__get_url_embalses(urls_cuencas)
+            cont = 0
             for embalse in urls_embalses:
-                embalse_data = self.__get_info_embalse(embalse)
-                df_temporal = pd.DataFrame([embalse_data])
-                self.data = pd.concat([self.data, df_temporal], ignore_index=True)
+                if cont < 3:
+                    embalse_data = self.__get_info_embalse(embalse)
+                    df_temporal = pd.DataFrame([embalse_data])
+                    self.data = pd.concat([self.data, df_temporal], ignore_index=True)
+                    cont += 1
         else:
             self.update_scrape()
 
@@ -214,10 +216,13 @@ class EmbalsesScraperSelenium():
         urls_cuencas = self.__get_url_cuencas()
         urls_embalses = self.__get_url_embalses(urls_cuencas)
         df_updated=pd.DataFrame()
+        cont = 0
         for embalse in urls_embalses:
-            embalse_data = self.__update_info_embalse(embalse)
-            df_temporal = pd.DataFrame([embalse_data])
-            df_updated  = pd.concat([df_updated, df_temporal], ignore_index=True)
+            if cont < 3:
+                embalse_data = self.__update_info_embalse(embalse)
+                df_temporal = pd.DataFrame([embalse_data])
+                df_updated  = pd.concat([df_updated, df_temporal], ignore_index=True)
+                cont += 1
         self.data.update(df_updated)
 
     def data2csv(self, outputfile):
