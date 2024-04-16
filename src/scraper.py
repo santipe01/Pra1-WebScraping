@@ -9,7 +9,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from fake_useragent import UserAgent
 import random
 import time
 
@@ -41,7 +40,7 @@ class EmbalsesScraperSelenium():
         cuencas_hidrográfricas = self.driver.find_elements(By.CSS_SELECTOR, '.index_bodysecLisT2_list')[1].find_elements(By.TAG_NAME, 'a')
         for cuenca_hidográfica in cuencas_hidrográfricas:
             urls.append(cuenca_hidográfica.get_attribute('href'))
-            self.__random_sleep()
+            #self.__random_sleep()
         return urls
 
     def __get_url_embalses(self, url_cuencas):
@@ -53,14 +52,14 @@ class EmbalsesScraperSelenium():
             for fila_embalse in tabla_embalses:
                 link_embalse = fila_embalse.find_element(By.TAG_NAME, 'a')
                 urls.append(link_embalse.get_attribute('href'))
-                self.__random_sleep()
+                #self.__random_sleep()
         return urls
 
     def __get_url_mapa(self, url_embalse):
         self.driver.get(url_embalse)
         url_mapa=WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//a[text()="Ver Mapa"]')))
-        self.__random_sleep()
         url_mapa_href = url_mapa.get_attribute("href")
+        print(url_mapa_href)
         return url_mapa_href
 
     def __get_nombre_embalse(self, url):
@@ -70,30 +69,37 @@ class EmbalsesScraperSelenium():
         return nombre_embalse
 
     def __get_lonlat(self, url_embalse):
-        url_mapa = self.__get_url_mapa(url_embalse)
-        self.driver.get(url_mapa)
-
-        # Esperar hasta que los scripts estén presentes
-        WebDriverWait(self.driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'script[type="text/javascript"]')))
-
-        javascript_mapa = self.driver.find_elements(By.CSS_SELECTOR, 'script[type="text/javascript"]')
-        pattern = r'center: ol\.proj\.fromLonLat\(\[(-?\d+\.\d+), (-?\d+\.\d+)\]\)'
         longitud = 0
         latitud = 0
-        for script in javascript_mapa:
-            matches = re.search(pattern, script.get_attribute('innerHTML'))
-            if matches:
-                # Extraer las coordenadas encontradas
-                longitud = matches.group(1)
-                latitud = matches.group(2)
+        try:
+            url_mapa = self.__get_url_mapa(url_embalse)
+            self.driver.get(url_mapa)
+
+            # Esperar hasta que los scripts estén presentes
+            WebDriverWait(self.driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'script[type="text/javascript"]')))
+
+            javascript_mapa = self.driver.find_elements(By.CSS_SELECTOR, 'script[type="text/javascript"]')
+            pattern = r'center: ol\.proj\.fromLonLat\(\[(-?\d+\.\d+), (-?\d+\.\d+)\]\)'
+            longitud = 0
+            latitud = 0
+            for script in javascript_mapa:
+                matches = re.search(pattern, script.get_attribute('innerHTML'))
+                if matches:
+                    # Extraer las coordenadas encontradas
+                    longitud = matches.group(1)
+                    latitud = matches.group(2)
+        except:
+            longitud = 0
+            latitud = 0
 
         return longitud, latitud
 
     def __get_info_embalse(self, url_embalse):
         # Realizamos la solicitud GET para obtener el contenido de la página del embalse
         self.driver.get(url_embalse)
-        self.__random_sleep()
+        #self.__random_sleep()
         nombre_embalse = self.__get_nombre_embalse(url_embalse)
+        print(nombre_embalse)
         # Inicializamos un diccionario para almacenar los datos
         data = {"Embalse": nombre_embalse}
 
@@ -151,7 +157,7 @@ class EmbalsesScraperSelenium():
                 pluviometros.append(pluviometro_name)
 
         data["Pluviometros"] = pluviometros
-        
+
         longitud, latitud = self.__get_lonlat(url_embalse)
 
         data["Longitud"] = longitud
@@ -162,7 +168,7 @@ class EmbalsesScraperSelenium():
     def __update_info_embalse(self, url_embalse):
         # Realizamos la solicitud GET para obtener el contenido de la página del embalse
         self.driver.get(url_embalse)
-        self.__random_sleep()
+        #self.__random_sleep()
         nombre_embalse = self.__get_nombre_embalse(url_embalse)
         # Inicializamos un diccionario para almacenar los datos
         data = {"Embalse": nombre_embalse}
@@ -203,7 +209,7 @@ class EmbalsesScraperSelenium():
                 self.data = pd.concat([self.data, df_temporal], ignore_index=True)
         else:
             self.update_scrape()
-    
+
     def update_scrape(self):
         urls_cuencas = self.__get_url_cuencas()
         urls_embalses = self.__get_url_embalses(urls_cuencas)
