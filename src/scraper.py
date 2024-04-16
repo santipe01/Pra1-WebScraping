@@ -37,7 +37,7 @@ class EmbalsesScraperSelenium():
         cuencas_hidrográfricas = self.driver.find_elements(By.CSS_SELECTOR, '.index_bodysecLisT2_list')[1].find_elements(By.TAG_NAME, 'a')
         for cuenca_hidográfica in cuencas_hidrográfricas:
             urls.append(cuenca_hidográfica.get_attribute('href'))
-            #self.__random_sleep()
+            self.__random_sleep()
         return urls
 
     def __get_url_embalses(self, url_cuencas):
@@ -49,7 +49,7 @@ class EmbalsesScraperSelenium():
             for fila_embalse in tabla_embalses:
                 link_embalse = fila_embalse.find_element(By.TAG_NAME, 'a')
                 urls.append(link_embalse.get_attribute('href'))
-                #self.__random_sleep()
+                self.__random_sleep()
         return urls
 
     def __get_url_mapa(self, url_embalse):
@@ -94,7 +94,7 @@ class EmbalsesScraperSelenium():
     def __get_info_embalse(self, url_embalse):
         # Realizamos la solicitud GET para obtener el contenido de la página del embalse
         self.driver.get(url_embalse)
-        #self.__random_sleep()
+        self.__random_sleep()
         nombre_embalse = self.__get_nombre_embalse(url_embalse)
         # Inicializamos un diccionario para almacenar los datos
         data = {"Embalse": nombre_embalse}
@@ -164,7 +164,7 @@ class EmbalsesScraperSelenium():
     def __update_info_embalse(self, url_embalse):
         # Realizamos la solicitud GET para obtener el contenido de la página del embalse
         self.driver.get(url_embalse)
-        #self.__random_sleep()
+        self.__random_sleep()
         nombre_embalse = self.__get_nombre_embalse(url_embalse)
         # Inicializamos un diccionario para almacenar los datos
         data = {"Embalse": nombre_embalse}
